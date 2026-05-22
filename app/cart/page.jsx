@@ -140,11 +140,28 @@ export default function CartPage() {
                 {cart.map((item, index) => (
                   <article className="cart-item" key={`${item.id}-${index}`}>
                     <div className="cart-item-top">
-                      <div>
-                        <h3 className="cart-item-title">{item.name}</h3>
-                        <div className="cart-item-meta">
-                          <span className="pill">{item.variant}</span>
-                          <span className="pill">{formatMoney(item.price)}</span>
+                      <div style={{ display: "flex", gap: "16px", alignItems: "center", flex: 1 }}>
+                        <div
+                          className="cart-item-visual"
+                          style={{
+                            width: "70px",
+                            height: "70px",
+                            borderRadius: "12px",
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            backgroundImage: item.imageData
+                              ? `url('${item.imageData}')`
+                              : `linear-gradient(135deg, ${item.accent1 || "#2d314f"}, ${item.accent2 || "#f3b36a"})`,
+                            border: "1px solid rgba(255, 255, 255, 0.08)",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <div>
+                          <h3 className="cart-item-title" style={{ fontSize: "1.1rem", margin: "0 0 6px 0" }}>{item.name}</h3>
+                          <div className="cart-item-meta">
+                            <span className="pill">{item.variant}</span>
+                            <span className="pill">{formatMoney(item.price)}</span>
+                          </div>
                         </div>
                       </div>
                       <button 

@@ -63,6 +63,9 @@ export function CartProvider({ children }) {
         variant,
         qty: 1,
         price: product.price,
+        imageData: product.imageData || "",
+        accent1: product.accent1 || "",
+        accent2: product.accent2 || "",
       },
     ]);
     return { success: true };
