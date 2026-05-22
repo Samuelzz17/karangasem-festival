@@ -1,111 +1,503 @@
-import EventSection from "../components/EventSection";
-import PlaceholderGrid from "../components/PlaceholderGrid";
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+import { useLanguage } from "../components/LanguageContext";
+import { useCart } from "../components/CartContext";
+import CountdownTimer from "../components/CountdownTimer";
+import { useHomeGsap } from "../hooks/useGsapAnimations";
 
 export default function HomePage() {
-  return (
-    <section className="page">
-      <section className="hero neo-section">
-        <div className="neo-accent neo-accent-blue" />
-        <div className="neo-accent neo-accent-orange" />
-        <div className="neo-accent neo-accent-green" />
-        <div>
-          <span className="eyebrow">Festival event inspired by the energy of Synchronize Fest</span>
-          <h1 className="hero-title">Karangasem Festival</h1>
-          <p className="hero-copy">
-            Halaman depan ini sekarang dibuat sebagai kanvas visual modern: warna neo-gradient,
-            layout kuat, dan ruang yang siap kamu isi dengan cerita event kapan saja.
-          </p>
-          <div className="hero-actions">
-            <a className="btn btn-primary" href="/rundown">
-              Lihat Rundown
-            </a>
-            <a className="btn btn-secondary" href="/merchandise">
-              Lihat Merchandise
-            </a>
-          </div>
-        </div>
+  const { lang, t, isSadMode, isAudioPlaying, setIsAudioPlaying } = useLanguage();
+  useHomeGsap();
+  const { addToCart } = useCart();
+  
+  const [products, setProducts] = useState([]);
+  const [activeTrack, setActiveTrack] = useState(null);
+  const [cartStatus, setCartStatus] = useState("");
+  const audioCtxRef = useRef(null);
+  const trackTimeoutRef = useRef(null);
 
-        <div className="hero-panel">
-          <div className="stat-grid">
-            <article className="stat-card">
-              <span className="stat-value">Home</span>
-              <span className="stat-label">gerbang utama untuk identitas festival</span>
-            </article>
-            <article className="stat-card">
-              <span className="stat-value">Neo</span>
-              <span className="stat-label">palet blue, orange, green, yellow, red</span>
-            </article>
-            <article className="stat-card">
-              <span className="stat-value">Template</span>
-              <span className="stat-label">siap diisi konten final nanti</span>
-            </article>
-            <article className="stat-card">
-              <span className="stat-value">Real</span>
-              <span className="stat-label">merch, order, dan admin sudah tersambung</span>
-            </article>
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (trackTimeoutRef.current) {
+        clearTimeout(trackTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseMoveOffset = (e) => {
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const xOffset = (x / rect.width) - 0.5;
+    const yOffset = (y / rect.height) - 0.5;
+    el.style.setProperty("--x-offset", `${xOffset}`);
+    el.style.setProperty("--y-offset", `${yOffset}`);
+  };
+
+  const handleMouseLeaveOffset = (e) => {
+    const el = e.currentTarget;
+    el.style.setProperty("--x-offset", "0");
+    el.style.setProperty("--y-offset", "0");
+  };
+
+  // Fetch products from our api route
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await fetch("/api/products");
+        if (res.ok) {
+          const data = await res.json();
+          // Take first 3 products for homepage showcase
+          setProducts(data.products ? data.products.slice(0, 3) : []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch products for homepage showcase:", err);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  const handleAddProduct = (product) => {
+    // Default to first variant
+    const variant = product.variants && product.variants.length > 0 ? product.variants[0] : "All Size";
+    const res = addToCart(product, variant);
+    if (res.success) {
+      setCartStatus(
+        lang === "id" 
+          ? `Berhasil menambahkan ${product.name} ke keranjang!` 
+          : `Successfully added ${product.name} to cart!`
+      );
+      setTimeout(() => setCartStatus(""), 3000);
+    } else {
+      setCartStatus(res.error);
+      setTimeout(() => setCartStatus(""), 3000);
+    }
+  };
+
+  // Balinese Pentatonic (Selisir) Synthesizer Melody
+  const playGamelanSynth = (trackIndex) => {
+    if (typeof window === "undefined") return;
+
+    try {
+      if (!audioCtxRef.current) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtxRef.current = new AudioContextClass();
+      }
+
+      const ctx = audioCtxRef.current;
+      
+      // Pentatonic Gamelan Selisir (approximate MIDI frequencies)
+      // Ding, Dong, Deng, Dung, Dang
+      const scales = [
+        [261.63, 293.66, 329.63, 392.00, 440.00, 523.25], // Track 1 / Day 1
+        [293.66, 329.63, 392.00, 440.00, 587.33, 659.25], // Track 2 / Day 2
+        [329.63, 392.00, 440.00, 523.25, 659.25, 783.99], // Track 3 / Day 3
+        [392.00, 440.00, 523.25, 587.33, 783.99, 880.00], // Track 4 / Day 4
+      ];
+
+      const melody = scales[trackIndex] || scales[0];
+      const tempo = 0.22; // Seconds between notes
+
+      melody.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        // Triangle wave gives a bell-like hollow texture
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * tempo);
+
+        // Simple vibrato lfo
+        const lfo = ctx.createOscillator();
+        const lfoGain = ctx.createGain();
+        lfo.frequency.setValueAtTime(8, ctx.currentTime);
+        lfoGain.gain.setValueAtTime(freq * 0.012, ctx.currentTime);
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        // Gamelan chime envelope: sharp attack, long exponential decay
+        gain.gain.setValueAtTime(0, ctx.currentTime + idx * tempo);
+        gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + idx * tempo + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * tempo + 0.7);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        lfo.start(ctx.currentTime + idx * tempo);
+        osc.start(ctx.currentTime + idx * tempo);
+
+        lfo.stop(ctx.currentTime + idx * tempo + 0.9);
+        osc.stop(ctx.currentTime + idx * tempo + 0.9);
+      });
+    } catch (e) {
+      console.error("Audio Context failed:", e);
+    }
+  };
+
+  const selectTrack = (idx) => {
+    if (trackTimeoutRef.current) {
+      clearTimeout(trackTimeoutRef.current);
+    }
+
+    if (activeTrack === idx && isAudioPlaying) {
+      setIsAudioPlaying(false);
+      return;
+    }
+
+    setActiveTrack(idx);
+    setIsAudioPlaying(true);
+    playGamelanSynth(idx);
+
+    trackTimeoutRef.current = setTimeout(() => {
+      setIsAudioPlaying(false);
+    }, 2000);
+  };
+
+  const togglePlayback = () => {
+    if (activeTrack === null) {
+      selectTrack(0);
+    } else {
+      if (isAudioPlaying) {
+        setIsAudioPlaying(false);
+        if (trackTimeoutRef.current) {
+          clearTimeout(trackTimeoutRef.current);
+        }
+      } else {
+        setIsAudioPlaying(true);
+        playGamelanSynth(activeTrack);
+        if (trackTimeoutRef.current) {
+          clearTimeout(trackTimeoutRef.current);
+        }
+        trackTimeoutRef.current = setTimeout(() => {
+          setIsAudioPlaying(false);
+        }, 2000);
+      }
+    }
+  };
+
+  const tracks = [
+    { id: 0, day: t.rundown.days.fri19, name: t.rundown.events.parade.title, desc: t.rundown.events.parade.desc },
+    { id: 1, day: t.rundown.days.sat20, name: t.rundown.events.jegegBagus.title, desc: t.rundown.events.jegegBagus.desc },
+    { id: 2, day: t.rundown.days.sun21, name: t.rundown.events.funRun.title, desc: t.rundown.events.funRun.desc },
+    { id: 3, day: t.rundown.days.mon22, name: t.rundown.events.peakDay.title, desc: t.rundown.events.peakDay.desc },
+  ];
+
+  return (
+    <div className={`home-reskin ${isSadMode ? "sad-mode-active" : ""}`}>
+      {/* SECTION 1: HERO SCREEN */}
+      <section className="screen screen_one">
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="main-video"
+        >
+          <source src="/bumper.mp4" type="video/mp4" />
+        </video>
+        
+        {/* Dynamic Dark Mode Gradients and Noise overlays */}
+        <div className="sadmodegrad" />
+        <div className="sadmodegraddop" />
+        
+        <div className="screen-inner">
+          <div className="hero-typography">
+            <span className="eyebrow-accent">
+              📍 {t.hero.dateTime}
+            </span>
+            <h1 className="hero-main-title select-none">
+              KARANGASEM
+              <span className="stroke-text">FESTIVAL</span>
+            </h1>
+            <h2 className="hero-main-subtitle">{t.hero.subtitle}</h2>
+            <p className="hero-tagline">{isSadMode ? `"${t.homepage.quoteSad.toUpperCase()}"` : `"${t.hero.tagline.toUpperCase()}"`}</p>
           </div>
-          <div className="info-card">
-            <span className="mini-badge">Ready for content</span>
-            <ul className="feature-list">
-              <li>Semua halaman publik sudah dibuat dengan arah visual yang konsisten.</li>
-              <li>Bagian-bagian penting ditata sebagai modul supaya mudah ditambah isinya nanti.</li>
-              <li>Merchandise dan admin tetap berjalan real di Firebase sambil tampilan dipoles modern.</li>
-            </ul>
+
+          <div className="hero-interactive">
+            <CountdownTimer />
+            
+            <div className="hero-ctas">
+              <Link className="hero-btn primary" href="/rundown">
+                📅 {t.hero.ctaRundown}
+              </Link>
+              <a 
+                className="hero-btn secondary" 
+                href="https://wa.me/628123456789?text=Halo%20Admin%2C%20saya%20ingin%20mendaftar%20Karangasem%20East%20Run%202026" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                🏃 {t.hero.ctaTicket}
+              </a>
+              <Link className="hero-btn secondary" href="/merchandise">
+                🛍️ {t.hero.ctaMerch}
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      <EventSection
-        eyebrow="Public pages"
-        title="Semua halaman publik sekarang disiapkan sebagai frame visual."
-        copy="About, History, Rundown, Gallery, dan Merchandise dibuat dengan nuansa neo-gradient supaya nanti tinggal kamu isi kontennya tanpa perlu ubah struktur besar."
-      >
-        <div className="hero-grid">
-          <article className="neo-card neo-card-blue">
-            <span className="mini-badge">About</span>
-            <h3>Story block</h3>
-            <p>Ruang untuk profil festival, visi, misi, dan identitas visual.</p>
-          </article>
-          <article className="neo-card neo-card-orange">
-            <span className="mini-badge">History</span>
-            <h3>Timeline block</h3>
-            <p>Ruang untuk milestone, perjalanan event, dan cerita pertumbuhan.</p>
-          </article>
-          <article className="neo-card neo-card-green">
-            <span className="mini-badge">Rundown</span>
-            <h3>Schedule block</h3>
-            <p>Ruang untuk jadwal acara, stage slot, dan susunan program.</p>
-          </article>
+      {/* SECTION 2: THEME INTRODUCTION (ARTS & CULTURE) */}
+      <section className="screen screen_two">
+        <div className="section-grid-lines" />
+        <div className="screen-inner split-layout">
+          <div className="text-mask-wrapper">
+            <div className="giant-mask-text">
+              {isSadMode ? t.homepage.psychoTitle.toUpperCase() : t.homepage.culturalTitle.toUpperCase()}
+            </div>
+          </div>
+
+          <div className="intro-card-content">
+            <span className="section-num">[01]</span>
+            <h3 className="intro-header">{t.homepage.introTitle}</h3>
+            <p className="intro-text">
+              {isSadMode ? t.homepage.introTextSad : t.homepage.introText}
+            </p>
+            <div className="intro-meta">
+              <span>HUT AMLAPURA 386</span>
+              <span>19 – 22 JUNI 2026</span>
+            </div>
+          </div>
         </div>
-        <PlaceholderGrid
-          items={[
-            {
-              index: "P1",
-              title: "Merchandise page",
-              copy: "Sudah terhubung ke checkout, cart, dan data order real.",
-              accentA: "#4f8cff",
-              accentB: "#ff7a59",
-              accentC: "#ffd166",
-            },
-            {
-              index: "P2",
-              title: "Gallery page",
-              copy: "Kanvas visual untuk foto, poster, dan dokumentasi event.",
-              accentA: "#69f0ae",
-              accentB: "#4f8cff",
-              accentC: "#f3b36a",
-            },
-            {
-              index: "P3",
-              title: "Future content",
-              copy: "Isi copywriting, CTA, dan highlight utama saat konten siap.",
-              accentA: "#ff8e8e",
-              accentB: "#ffd166",
-              accentC: "#69f0ae",
-            },
-          ]}
-        />
-      </EventSection>
-    </section>
+      </section>
+
+      {/* SECTION 3: INTERACTIVE GEOMETRIC INITIALS GRID */}
+      <section className="screen screen_three">
+        <div className="section-grid-lines" />
+        <div className="screen-inner">
+          <div className="grid-header">
+            <span className="section-num">[02]</span>
+            <h2 className="grid-title">VISUAL KEY SYSTEM</h2>
+            <p className="grid-subtitle">{lang === "id" ? "Sentuh elemen untuk menggambar visual branding." : "Hover coordinates to draw visual branding."}</p>
+          </div>
+
+          <div className="initials-grid">
+            {/* Panel K */}
+            <div 
+              className="initials-box group"
+              onMouseMove={handleMouseMoveOffset}
+              onMouseLeave={handleMouseLeaveOffset}
+            >
+              <svg viewBox="0 0 100 100" className="box-svg">
+                <line x1="20" y1="10" x2="20" y2="90" className="svg-line main-line" />
+                <line x1="20" y1="50" x2="70" y2="10" className="svg-line branch-line" />
+                <line x1="20" y1="50" x2="70" y2="90" className="svg-line branch-line" />
+                <circle cx="20" cy="10" r="3" className="svg-dot" />
+                <circle cx="70" cy="10" r="3" className="svg-dot" />
+                <circle cx="70" cy="90" r="3" className="svg-dot" />
+              </svg>
+              <div className="box-label">
+                <span>[K]</span>
+                <strong>Karangasem</strong>
+              </div>
+            </div>
+
+            {/* Panel F */}
+            <div 
+              className="initials-box group"
+              onMouseMove={handleMouseMoveOffset}
+              onMouseLeave={handleMouseLeaveOffset}
+            >
+              <svg viewBox="0 0 100 100" className="box-svg">
+                <line x1="25" y1="10" x2="25" y2="90" className="svg-line main-line" />
+                <line x1="25" y1="10" x2="75" y2="10" className="svg-line branch-line" />
+                <line x1="25" y1="45" x2="65" y2="45" className="svg-line branch-line" />
+                <circle cx="75" cy="10" r="3" className="svg-dot" />
+                <circle cx="65" cy="45" r="3" className="svg-dot" />
+              </svg>
+              <div className="box-label">
+                <span>[F]</span>
+                <strong>Festival</strong>
+              </div>
+            </div>
+
+            {/* Panel A */}
+            <div 
+              className="initials-box group"
+              onMouseMove={handleMouseMoveOffset}
+              onMouseLeave={handleMouseLeaveOffset}
+            >
+              <svg viewBox="0 0 100 100" className="box-svg">
+                <line x1="50" y1="10" x2="20" y2="90" className="svg-line main-line" />
+                <line x1="50" y1="10" x2="80" y2="90" className="svg-line main-line" />
+                <line x1="30" y1="65" x2="70" y2="65" className="svg-line branch-line" />
+                <circle cx="50" cy="10" r="3" className="svg-dot" />
+                <circle cx="20" cy="90" r="3" className="svg-dot" />
+                <circle cx="80" cy="90" r="3" className="svg-dot" />
+              </svg>
+              <div className="box-label">
+                <span>[A]</span>
+                <strong>Amlapura</strong>
+              </div>
+            </div>
+
+            {/* Panel M */}
+            <div 
+              className="initials-box group"
+              onMouseMove={handleMouseMoveOffset}
+              onMouseLeave={handleMouseLeaveOffset}
+            >
+              <svg viewBox="0 0 100 100" className="box-svg">
+                <line x1="15" y1="90" x2="15" y2="10" className="svg-line main-line" />
+                <line x1="15" y1="10" x2="50" y2="55" className="svg-line branch-line" />
+                <line x1="50" y1="55" x2="85" y2="10" className="svg-line branch-line" />
+                <line x1="85" y1="10" x2="85" y2="90" className="svg-line main-line" />
+                <circle cx="15" cy="10" r="3" className="svg-dot" />
+                <circle cx="50" cy="55" r="3" className="svg-dot" />
+                <circle cx="85" cy="10" r="3" className="svg-dot" />
+              </svg>
+              <div className="box-label">
+                <span>[M]</span>
+                <strong>Music & Art</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 4: SOUNDBOARD RUNDOWN PLAYER */}
+      <section className="screen screen_four">
+        <div className="section-grid-lines" />
+        <div className="screen-inner soundboard-layout">
+          <div className="text-mask-wrapper left-aligned">
+            <div className="giant-mask-text outline-only">
+              {t.homepage.musicalTitle.toUpperCase()}
+            </div>
+          </div>
+
+          <div className="soundboard-container">
+            <div className="soundboard-header">
+              <div>
+                <span className="section-num">[03]</span>
+                <h2 className="soundboard-title">{t.homepage.playlistTitle}</h2>
+                <p className="soundboard-subtitle">{t.homepage.playlistDesc}</p>
+              </div>
+
+              {/* Central Audio Play Controller */}
+              <div className="main-audio-control" onClick={togglePlayback}>
+                <div className={`disc-spinner ${isAudioPlaying ? "spinning" : ""}`}>
+                  <div className="disc-center" />
+                </div>
+                <div className="play-button-status">
+                  <strong>{isAudioPlaying ? "PLAYING" : "PAUSED"}</strong>
+                  <span>{activeTrack !== null ? `Track 0${activeTrack + 1}` : "No Track Selected"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tracklist table */}
+            <div className="tracklist">
+              {tracks.map((track, index) => (
+                <div 
+                  key={track.id}
+                  className={`track-item ${activeTrack === index ? "active" : ""}`}
+                  onClick={() => selectTrack(index)}
+                  data-cursor="track"
+                  data-cursor-text={isAudioPlaying && activeTrack === index ? "[stop]" : "[play]"}
+                >
+                  {/* Progress overlay fill */}
+                  {activeTrack === index && isAudioPlaying && (
+                    <div className="track-progress-fill" />
+                  )}
+                  <span className="track-index">0{index + 1}</span>
+                  <div className="track-details">
+                    <span className="track-day">{track.day}</span>
+                    <strong className="track-name">{track.name}</strong>
+                    <p className="track-desc">{track.desc}</p>
+                  </div>
+                  <div className="track-play-indicator">
+                    {activeTrack === index && isAudioPlaying ? (
+                      <div className="eq-bar-container">
+                        <span className="eq-bar bar1" />
+                        <span className="eq-bar bar2" />
+                        <span className="eq-bar bar3" />
+                      </div>
+                    ) : (
+                      <span className="play-icon">▶</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="soundboard-actions">
+              <Link className="hero-btn primary" href="/rundown">
+                📅 {lang === "id" ? "Buka Jadwal Rundown Lengkap" : "Open Full Rundown Schedule"}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 5: MERCHANDISE OVERLAPPING SHOWCASE */}
+      <section className="screen screen_five">
+        <div className="section-grid-lines" />
+        <div className="screen-inner merch-showcase-layout">
+          <div className="merch-header">
+            <span className="section-num">[04]</span>
+            <h2 className="merch-title">{t.homepage.merchTitle}</h2>
+            <p className="merch-subtitle">{t.homepage.merchDesc}</p>
+          </div>
+
+          {cartStatus && (
+            <div className="cart-toast">
+              {cartStatus}
+            </div>
+          )}
+
+          <div className="merch-cards-container">
+            {products.map((product, idx) => (
+              <div 
+                key={product.id} 
+                className={`merch-showcase-card index-${idx}`}
+                style={{
+                  "--index": idx
+                }}
+                data-cursor="merch"
+                data-cursor-text={product.name}
+                onMouseMove={handleMouseMoveOffset}
+                onMouseLeave={handleMouseLeaveOffset}
+              >
+                <div 
+                  className="merch-card-img" 
+                  style={{
+                    backgroundImage: product.imageData 
+                      ? `url('${product.imageData}')` 
+                      : `linear-gradient(135deg, ${product.accent1 || "#3388EB"}, ${product.accent2 || "#A22D43"})`
+                  }}
+                />
+                <div className="merch-card-overlay">
+                  <div className="merch-card-info">
+                    <span className="merch-card-type">{product.type}</span>
+                    <h4 className="merch-card-name">{product.name}</h4>
+                    <span className="merch-card-price">
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        maximumFractionDigits: 0
+                      }).format(product.price)}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => handleAddProduct(product)}
+                    className="merch-card-add-btn"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="merch-footer-actions">
+            <Link className="hero-btn primary" href="/merchandise">
+              🛒 {lang === "id" ? "Buka Toko Merchandise" : "Open Merchandise Shop"}
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

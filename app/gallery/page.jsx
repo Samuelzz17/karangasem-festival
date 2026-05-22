@@ -1,93 +1,207 @@
-import EventSection from "../../components/EventSection";
-import PlaceholderGrid from "../../components/PlaceholderGrid";
+"use client";
 
-const gallery = [
-  {
-    title: "Sunset Main Stage",
-    copy: "Panggung utama dengan langit sore dan lighting yang dramatis.",
-    gradient:
-      "linear-gradient(135deg, rgba(18, 24, 42, 0.18), rgba(18, 24, 42, 0.72)), radial-gradient(circle at 20% 20%, rgba(243, 179, 106, 0.42), transparent 18%), radial-gradient(circle at 70% 30%, rgba(125, 211, 252, 0.3), transparent 16%), linear-gradient(135deg, #30405e, #1f2538 55%, #0f1424)",
-    span: "grid-span-7",
-  },
-  {
-    title: "Night Crowd",
-    copy: "Energi penonton saat headline act tampil.",
-    gradient:
-      "linear-gradient(135deg, rgba(18, 24, 42, 0.18), rgba(18, 24, 42, 0.72)), radial-gradient(circle at 28% 26%, rgba(255, 214, 102, 0.35), transparent 17%), radial-gradient(circle at 80% 16%, rgba(255, 142, 142, 0.35), transparent 16%), linear-gradient(135deg, #5d3d4a, #201822 48%, #0b1120)",
-    span: "grid-span-5",
-  },
-  {
-    title: "Culture Corner",
-    copy: "Ruang budaya dan pertunjukan tradisional.",
-    gradient:
-      "linear-gradient(135deg, rgba(18, 24, 42, 0.2), rgba(18, 24, 42, 0.78)), radial-gradient(circle at 30% 25%, rgba(126, 226, 184, 0.28), transparent 17%), linear-gradient(135deg, #274a3f, #16212b 60%, #0b101c)",
-    span: "grid-span-4",
-  },
-  {
-    title: "Merch Booth",
-    copy: "Stand merchandise yang tampil rapi dan mudah dibeli.",
-    gradient:
-      "linear-gradient(135deg, rgba(18, 24, 42, 0.16), rgba(18, 24, 42, 0.82)), radial-gradient(circle at 68% 22%, rgba(243, 179, 106, 0.3), transparent 20%), linear-gradient(135deg, #613e28, #1d2434 52%, #0a1020)",
-    span: "grid-span-4",
-  },
-  {
-    title: "Festival Detail",
-    copy: "Tekstur visual, signage, dan suasana lokasi.",
-    gradient:
-      "linear-gradient(135deg, rgba(18, 24, 42, 0.18), rgba(18, 24, 42, 0.78)), radial-gradient(circle at 25% 22%, rgba(125, 211, 252, 0.28), transparent 18%), linear-gradient(135deg, #24415a, #172032 56%, #0b111f)",
-    span: "grid-span-4",
-  },
-];
+import { useState } from "react";
+import { useLanguage } from "../../components/LanguageContext";
+import EventSection from "../../components/EventSection";
+import { usePageEntranceGsap } from "../../hooks/usePageGsap";
 
 export default function GalleryPage() {
+  const { lang, t } = useLanguage();
+  const [filter, setFilter] = useState("all");
+  usePageEntranceGsap();
+
+  const mediaItems = [
+    // Culture
+    {
+      id: "cult-1",
+      category: "culture",
+      title: lang === "id" ? "Parade Budaya Nusantara" : "Nusantara Cultural Parade",
+      desc: lang === "id" ? "Prosesi tari kolosal pembukaan Karangasem Festival." : "Opening grand dance parade.",
+      imageClass: "gradient-culture-1",
+      type: "photo"
+    },
+    {
+      id: "cult-2",
+      category: "culture",
+      title: lang === "id" ? "Busana Adat Agung Karangasem" : "Karangasem Traditional Costumes",
+      desc: lang === "id" ? "Kecantikan kain Tenun Ikat dan aksesoris adat otentik." : "Exquisite woven fabrics and authentic traditional ornaments.",
+      imageClass: "gradient-culture-2",
+      type: "photo"
+    },
+    {
+      id: "cult-3",
+      category: "culture",
+      title: lang === "id" ? "Pementasan Wayang Sunar" : "Wayang Sunar Shadow Puppets",
+      desc: lang === "id" ? "Pementasan sakral di malam puncak Hari Jadi." : "Sacred puppet performance on the peak celebration night.",
+      imageClass: "gradient-culture-3",
+      type: "photo"
+    },
+    // Sports
+    {
+      id: "sport-1",
+      category: "sports",
+      title: "Karangasem Fun Rally 2026",
+      desc: lang === "id" ? "Start rally otomotif menyusuri rute wisata Karangasem." : "Automotive rally flag-off exploring scenic tourist routes.",
+      imageClass: "gradient-sports-1",
+      type: "photo"
+    },
+    {
+      id: "sport-2",
+      category: "sports",
+      title: "East Bali Fun Run 2026",
+      desc: lang === "id" ? "Semangat ribuan pelari menyusuri pantai di pagi hari." : "The spirit of thousands of runners jogging along the coast.",
+      imageClass: "gradient-sports-2",
+      type: "photo"
+    },
+    {
+      id: "sport-3",
+      category: "sports",
+      title: lang === "id" ? "Komunitas Lari Amlapura" : "Amlapura Running Club Community",
+      desc: lang === "id" ? "Kebersamaan peserta lari setelah mencapai garis finish." : "Togetherness after crossing the finish line.",
+      imageClass: "gradient-sports-3",
+      type: "photo"
+    },
+    // Stage
+    {
+      id: "stage-1",
+      category: "stage",
+      title: "Navicula Live Concert",
+      desc: lang === "id" ? "Aksi panggung penuh energi menyuarakan rock ekologis." : "High energy rock concert raising ecological awareness.",
+      imageClass: "gradient-stage-1",
+      type: "photo"
+    },
+    {
+      id: "stage-2",
+      category: "stage",
+      title: "Semaya Koplo Dance Night",
+      desc: lang === "id" ? "Keseruan penonton bergembira bersama panggung koplo." : "Audience dancing together on the koplo dance night.",
+      imageClass: "gradient-stage-2",
+      type: "photo"
+    },
+    {
+      id: "stage-3",
+      category: "stage",
+      title: "Donnie Sibarani Special Performance",
+      desc: lang === "id" ? "Momen nostalgia romantis menyanyikan lagu hits legendaris." : "Nostalgic romantic performance singing legendary hit songs.",
+      imageClass: "gradient-stage-3",
+      type: "photo"
+    },
+    // Multimedia (Video)
+    {
+      id: "video-1",
+      category: "multimedia",
+      title: "Official Teaser - Karangasem Festival 2026",
+      desc: lang === "id" ? "Video promosi visual keindahan Karangasem & HUT Kota." : "Promotional video showcasing Karangasem beauty & City anniversary.",
+      imageClass: "gradient-video-1",
+      type: "video",
+      duration: "02:15"
+    },
+    {
+      id: "video-2",
+      category: "multimedia",
+      title: "Daily Highlights - Hari 1 & 2",
+      desc: lang === "id" ? "Kompilasi keseruan parade budaya dan penobatan Jegeg Bagus." : "Excitement compile of cultural parades and Jegeg Bagus final.",
+      imageClass: "gradient-video-2",
+      type: "video",
+      duration: "05:40"
+    },
+    {
+      id: "video-3",
+      category: "multimedia",
+      title: "Aftermovie Official 2026",
+      desc: lang === "id" ? "Dokumentasi rangkuman kemeriahan festival selama 4 hari penuh." : "Official summary documentation of the full 4-day festival.",
+      imageClass: "gradient-video-3",
+      type: "video",
+      duration: "10:24"
+    }
+  ];
+
+  const categories = [
+    { id: "all", label: lang === "id" ? "Semua Album" : "All Albums" },
+    { id: "culture", label: t.gallery.albums.culture },
+    { id: "sports", label: t.gallery.albums.sports },
+    { id: "stage", label: t.gallery.albums.stage },
+    { id: "multimedia", label: lang === "id" ? "Multimedia (Video)" : "Multimedia Video Room" },
+  ];
+
+  const filteredMedia = filter === "all"
+    ? mediaItems
+    : mediaItems.filter(item => item.category === filter);
+
   return (
-    <section className="page">
+    <section className="page gallery-page">
       <EventSection
-        eyebrow="Gallery"
-        title="Gallery placeholder dengan nuansa neon gradient untuk mengisi visual nanti."
-        copy="Area gallery sudah dibentuk sebagai showcase visual. Tinggal isi foto, poster, video, atau dokumentasi event saat asetnya siap."
+        eyebrow={t.gallery.eyebrow}
+        title={t.gallery.title}
+        copy={t.gallery.desc}
       >
-        <div className="gallery-grid neo-gallery">
-          {gallery.map((item) => (
-            <article
-              className={`gallery-photo ${item.span} neo-card`}
-              key={item.title}
-              style={{ backgroundImage: item.gradient }}
+        {/* ALBUM DESCRIPTIONS INFO ROW */}
+        <div className="gallery-albums-info">
+          <div className="info-grid">
+            <div className="album-desc-card font-sm border-blue">
+              <strong>🌸 {t.gallery.albums.culture}</strong>
+              <p>{t.gallery.albums.cultureDesc}</p>
+            </div>
+            <div className="album-desc-card font-sm border-orange">
+              <strong>👟 {t.gallery.albums.sports}</strong>
+              <p>{t.gallery.albums.sportsDesc}</p>
+            </div>
+            <div className="album-desc-card font-sm border-green">
+              <strong>🎸 {t.gallery.albums.stage}</strong>
+              <p>{t.gallery.albums.stageDesc}</p>
+            </div>
+            <div className="album-desc-card font-sm border-red">
+              <strong>🎥 {t.gallery.albums.multimedia}</strong>
+              <p>{t.gallery.albums.multimediaDesc}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ALBUMS FILTER TABS */}
+        <div className="gallery-tabs">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setFilter(cat.id)}
+              className={`filter-tab-btn ${filter === cat.id ? "active" : ""}`}
             >
-              <span className="mini-badge">Visual slot</span>
-              <h3>{item.title}</h3>
-              <p className="gallery-note">{item.copy}</p>
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* GALLERY PHOTO/VIDEO GRID */}
+        <div className="gallery-visual-grid">
+          {filteredMedia.map((item) => (
+            <article 
+              key={item.id} 
+              className={`gallery-visual-card card-${item.category} ${item.type === "video" ? "type-video" : "type-photo"}`}
+            >
+              {/* Media Visual Mockup */}
+              <div className={`media-mockup-wrapper ${item.imageClass}`}>
+                {item.type === "video" && (
+                  <div className="video-overlay-play">
+                    <span className="play-button-icon">▶</span>
+                    <span className="video-duration">{item.duration}</span>
+                  </div>
+                )}
+                <div className="media-visual-shimmer"></div>
+              </div>
+
+              {/* Media Details */}
+              <div className="media-details">
+                <div className="media-header">
+                  <span className={`media-tag tag-${item.category}`}>
+                    {item.category.toUpperCase()}
+                  </span>
+                  {item.type === "video" && <span className="video-tag-indicator">VIDEO</span>}
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.desc}</p>
+              </div>
             </article>
           ))}
         </div>
-        <PlaceholderGrid
-          items={[
-            {
-              index: "G1",
-              title: "Hero visual",
-              copy: "Area untuk banner besar atau cover image festival.",
-              accentA: "#4f8cff",
-              accentB: "#ff7a59",
-              accentC: "#ffd166",
-            },
-            {
-              index: "G2",
-              title: "Scene gallery",
-              copy: "Isi dengan momen panggung, crowd, dan behind the scenes.",
-              accentA: "#69f0ae",
-              accentB: "#4f8cff",
-              accentC: "#f3b36a",
-            },
-            {
-              index: "G3",
-              title: "Brand assets",
-              copy: "Untuk poster, badge, stage signage, dan visual promosi.",
-              accentA: "#ff8e8e",
-              accentB: "#ffd166",
-              accentC: "#69f0ae",
-            },
-          ]}
-        />
       </EventSection>
     </section>
   );

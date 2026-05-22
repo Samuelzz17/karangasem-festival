@@ -1,7 +1,0 @@
-{
-  "/rundown/page": "app/rundown/page.js",
-  "/about/page": "app/about/page.js",
-  "/admin/login/page": "app/admin/login/page.js",
-  "/history/page": "app/history/page.js",
-  "/gallery/page": "app/gallery/page.js"
-}

@@ -1,6 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useCart } from "./CartContext";
+import { useLanguage } from "./LanguageContext";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const currency = new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -12,285 +21,344 @@ function formatMoney(value) {
   return currency.format(value || 0);
 }
 
-function readFileAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
 export default function MerchandiseClient({ initialProducts }) {
-  const [products, setProducts] = useState(initialProducts || []);
-  const [cart, setCart] = useState([]);
-  const [buyerName, setBuyerName] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [note, setNote] = useState("");
-  const [proofPreview, setProofPreview] = useState("");
-  const [proofName, setProofName] = useState("");
-  const [proofData, setProofData] = useState("");
-  const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [products] = useState(initialProducts || []);
+  const { addToCart, cartCount } = useCart();
   const [variantSelections, setVariantSelections] = useState({});
+  const [activeCategory, setActiveCategory] = useState("ALL");
+  const [toasts, setToasts] = useState([]);
+  const { lang, t } = useLanguage();
+  const containerRef = useRef(null);
 
-  const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
-  const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + item.qty * item.price, 0), [cart]);
+  // Floating toast notification trigger
+  function addToast(message, type = "success") {
+    const id = Date.now() + Math.random().toString(36).substr(2, 9);
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  }
 
-  function addToCart(product) {
+  function handleAdd(product) {
     const variant = variantSelections[product.id] || product.variants[0];
-    const existing = cart.find((item) => item.id === product.id && item.variant === variant);
-    const totalQty = cart.filter((item) => item.id === product.id).reduce((sum, item) => sum + item.qty, 0);
-    if (!product.stock) return;
+    const res = addToCart(product, variant);
+    if (res.success) {
+      const msg = lang === "id"
+        ? `Berhasil menambahkan ${product.name} (${variant}) ke keranjang!`
+        : `Successfully added ${product.name} (${variant}) to cart!`;
+      addToast(msg, "success");
+    } else {
+      addToast(res.error, "error");
+    }
+  }
 
-    if (existing) {
-      if (totalQty >= product.stock) {
-        setStatus(`Stok ${product.name} habis untuk varian yang dipilih.`);
-        return;
+  // Categories extraction
+  const categories = ["ALL", ...new Set(products.map((p) => p.type))];
+
+  // Filtering
+  const filteredProducts = activeCategory === "ALL"
+    ? products
+    : products.filter((p) => p.type === activeCategory);
+
+  function getCategoryLabel(type) {
+    if (lang === "id") {
+      switch (type.toLowerCase()) {
+        case "all": return "Semua";
+        case "apparel": return "Pakaian";
+        case "accessories": return "Aksesoris";
+        case "daily carry": return "Tas & Harian";
+        case "print": return "Poster & Cetak";
+        case "entry kit": return "Tiket & Kit";
+        default: return type;
       }
-      setCart(
-        cart.map((item) =>
-          item === existing ? { ...item, qty: item.qty + 1 } : item,
-        ),
-      );
-      return;
+    } else {
+      switch (type.toLowerCase()) {
+        case "all": return "All";
+        default: return type;
+      }
     }
-
-    if (totalQty >= product.stock) {
-      setStatus(`Stok ${product.name} habis.`);
-      return;
-    }
-
-    setCart([
-      ...cart,
-      {
-        id: product.id,
-        name: product.name,
-        variant,
-        qty: 1,
-        price: product.price,
-      },
-    ]);
   }
 
-  function changeQty(index, delta) {
-    setCart((current) => {
-      const next = current
-        .map((item, itemIndex) => (itemIndex === index ? { ...item, qty: item.qty + delta } : item))
-        .filter((item) => item.qty > 0);
-      return next;
-    });
-  }
+  // GSAP animations on mount
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // ── HERO TIMELINE ──────────────────────────────────────────
+      const heroTl = gsap.timeline({ delay: 0.1 });
+      heroTl
+        .from(".merch-hero-tag", {
+          y: -20,
+          opacity: 0,
+          duration: 0.6,
+          ease: "power3.out",
+        })
+        .from(".merch-hero-giant .word", {
+          y: 80,
+          opacity: 0,
+          duration: 1.0,
+          stagger: 0.15,
+          ease: "expo.out",
+        }, "-=0.3")
+        .from(".merch-hero-divider", {
+          scaleX: 0,
+          transformOrigin: "left",
+          duration: 0.8,
+          ease: "expo.out",
+        }, "-=0.5")
+        .from(".merch-hero-desc", {
+          y: 25,
+          opacity: 0,
+          duration: 0.7,
+          ease: "power3.out",
+        }, "-=0.4")
+        .from(".merch-hero-scroll", {
+          opacity: 0,
+          y: 10,
+          duration: 0.5,
+          ease: "power2.out",
+        }, "-=0.3")
+        .from(".merch-hero-deco", {
+          scale: 0.9,
+          opacity: 0,
+          duration: 0.8,
+          ease: "back.out(1.5)",
+        }, "-=0.6");
 
-  async function handleProofChange(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const dataUrl = await readFileAsDataURL(file);
-    setProofData(dataUrl);
-    setProofName(file.name);
-    setProofPreview(dataUrl);
-  }
-
-  async function handleCheckout(event) {
-    event.preventDefault();
-    if (!cart.length) {
-      setStatus("Cart masih kosong.");
-      return;
-    }
-
-    setLoading(true);
-    setStatus("");
-
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          buyerName,
-          whatsapp,
-          note,
-          proofData,
-          proofName,
-          proofType: proofData.startsWith("data:image/") ? "image" : "application/octet-stream",
-          items: cart,
-        }),
+      // ── PURCHASE GUIDE SCROLL TRIGGER ─────────────────────────
+      gsap.from(".merch-guide-card", {
+        scrollTrigger: {
+          trigger: ".merch-guide-panel",
+          start: "top 82%",
+          toggleActions: "play none none none",
+        },
+        y: 60,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.15,
+        ease: "power3.out",
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Checkout gagal.");
-      }
+      // ── CATALOG SECTION HEADER SCROLL TRIGGER ──────────────────
+      gsap.from(".merch-catalog-screen .merch-section-header > *", {
+        scrollTrigger: {
+          trigger: ".merch-catalog-screen",
+          start: "top 80%",
+          toggleActions: "play none none none",
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.7,
+        stagger: 0.1,
+        ease: "power3.out",
+      });
 
-      setStatus(`Order ${data.order.id} berhasil disimpan.`);
-      setCart([]);
-      setBuyerName("");
-      setWhatsapp("");
-      setNote("");
-      setProofData("");
-      setProofName("");
-      setProofPreview("");
+      gsap.from(".merch-catalog-controls", {
+        scrollTrigger: {
+          trigger: ".merch-catalog-controls",
+          start: "top 85%",
+          toggleActions: "play none none none",
+        },
+        y: 20,
+        opacity: 0,
+        duration: 0.6,
+        ease: "power2.out",
+      });
+    }, containerRef);
 
-      const refreshed = await fetch("/api/products", { cache: "no-store" }).then((res) => res.json());
-      setProducts(refreshed.products || []);
-    } catch (error) {
-      setStatus(error.message);
-    } finally {
-      setLoading(false);
+    return () => ctx.revert();
+  }, []);
+
+  // GSAP animation when category changes
+  useEffect(() => {
+    if (filteredProducts.length > 0) {
+      gsap.fromTo(
+        ".merch-product-card",
+        { y: 30, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          stagger: 0.06,
+          ease: "power3.out",
+          overwrite: "auto",
+        }
+      );
     }
-  }
+  }, [activeCategory]);
 
   return (
-    <div className="merch-layout">
-      <section className="stack">
-        <div className="section">
-          <div className="section-header">
-            <div>
-              <h2 className="section-title">Koleksi merchandise</h2>
-              <p className="section-copy">Produk di sini ditarik langsung dari Firestore.</p>
+    <div ref={containerRef} className="merch-reskin">
+      {/* ── HERO SCREEN ────────────────────────────────────────── */}
+      <section className="merch-screen merch-hero-screen">
+        <div className="merch-screen-grid" />
+        <div className="merch-hero-inner">
+          <div>
+            <span className="merch-hero-tag">
+              [{t.merchandise.eyebrow}]
+            </span>
+            <h1 className="merch-hero-giant">
+              <span className="word">OFFICIAL</span>
+              <span className="word outline">COLLECTION</span>
+            </h1>
+            <div className="merch-hero-divider" />
+            <p className="merch-hero-desc">{t.merchandise.desc}</p>
+            <div className="merch-hero-scroll">
+              <span className="merch-scroll-line" />
+              <span>{lang === "id" ? "gulir ke bawah" : "scroll down"}</span>
             </div>
           </div>
-          <div className="product-grid">
-            {products.map((product) => (
-              <article className="product-card" key={product.id}>
-                <div
-                  className="product-visual"
-                  data-label={product.tag}
-                  style={{
-                    backgroundImage: product.imageData
-                      ? `url('${product.imageData}')`
-                      : `linear-gradient(135deg, ${product.accent1}, ${product.accent2})`,
-                  }}
-                />
-                <div className="body">
-                  <div className="product-top">
-                    <div>
-                      <span className="mini-badge">{product.type}</span>
-                      <h3>{product.name}</h3>
+
+          <div className="merch-hero-deco">
+            <span className="merch-hero-deco-badge">AUTHENTIC</span>
+            <span className="merch-hero-deco-title">EST. 2026</span>
+            <span className="merch-hero-deco-info">Karangasem Festival</span>
+          </div>
+        </div>
+        <div className="merch-gold-bar" />
+      </section>
+
+      {/* ── PURCHASE GUIDE SCREEN ──────────────────────────────── */}
+      <section className="merch-screen merch-guide-screen">
+        <div className="merch-screen-grid" />
+        <div className="container">
+          <div className="merch-section-header">
+            <span className="merch-section-label">[01] — {lang === "id" ? "Informasi Pembelian" : "Order Info"}</span>
+            <h2 className="merch-section-title">{t.merchandise.flowTitle}</h2>
+          </div>
+
+          <div className="merch-guide-panel">
+            <div className="merch-guide-card offline">
+              <span className="merch-guide-badge">OFFLINE BOOTH</span>
+              <h3>{t.merchandise.offlineTitle}</h3>
+              <p>{t.merchandise.offlineDesc}</p>
+            </div>
+
+            <div className="merch-guide-card online">
+              <span className="merch-guide-badge">ONLINE PRE-ORDER</span>
+              <h3>{t.merchandise.onlineTitle}</h3>
+              <p>{t.merchandise.onlineDesc}</p>
+              <a
+                href="https://wa.me/628123456789?text=Halo%20Admin%2C%20saya%20ingin%20memesan%20Official%20Merchandise%20Karangasem%20Festival%202026"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="merch-wa-btn"
+              >
+                💬 {t.merchandise.ctaWa}
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="merch-gold-bar" />
+      </section>
+
+      {/* ── STORE CATALOG SCREEN ────────────────────────────────── */}
+      <section className="merch-screen merch-catalog-screen">
+        <div className="merch-screen-grid" />
+        <div className="container">
+          <div className="merch-section-header">
+            <span className="merch-section-label">[02] — {lang === "id" ? "Katalog Resmi" : "Official Catalog"}</span>
+            <h2 className="merch-section-title">{t.merchandise.catalogTitle}</h2>
+          </div>
+
+          <div className="merch-catalog-controls">
+            <div className="merch-filter-container">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`merch-filter-tab ${activeCategory === cat ? "active" : ""}`}
+                >
+                  {getCategoryLabel(cat)}
+                </button>
+              ))}
+            </div>
+
+            <Link href="/cart" className="merch-cart-badge-trigger">
+              🛒 {lang === "id" ? "Buka Keranjang" : "View Cart"}
+              {cartCount > 0 && <span className="merch-cart-count">{cartCount}</span>}
+            </Link>
+          </div>
+
+          <div className="merch-products-grid">
+            {filteredProducts.length === 0 ? (
+              <p style={{ gridColumn: "span 3", textAlign: "center", padding: "80px", color: "var(--muted)", fontWeight: "600" }}>
+                {lang === "id" ? "Tidak ada produk untuk kategori ini." : "No products available in this category."}
+              </p>
+            ) : (
+              filteredProducts.map((product) => {
+                const selectedVariant = variantSelections[product.id] || product.variants[0];
+                return (
+                  <article className="merch-product-card" key={product.id}>
+                    <div className="merch-card-visual-wrapper">
+                      {product.tag && <span className="merch-card-tag">{product.tag}</span>}
+                      <div
+                        className="merch-card-visual-bg"
+                        style={{
+                          backgroundImage: product.imageData
+                            ? `url('${product.imageData}')`
+                            : `linear-gradient(135deg, ${product.accent1 || "#2d314f"}, ${product.accent2 || "#f3b36a"})`,
+                        }}
+                      />
                     </div>
-                    <div className="price">{formatMoney(product.price)}</div>
-                  </div>
-                  <p className="product-desc">{product.description}</p>
-                  <div className="product-meta">
-                    <span className="pill">{product.tag}</span>
-                    <span className="pill">{product.stock} stok</span>
-                  </div>
-                  <div className="product-actions">
-                    <select
-                      value={variantSelections[product.id] || product.variants[0]}
-                      onChange={(e) =>
-                        setVariantSelections((current) => ({
-                          ...current,
-                          [product.id]: e.target.value,
-                        }))
-                      }
-                    >
-                      {product.variants.map((variant) => (
-                        <option key={variant}>{variant}</option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => addToCart(product)}
-                      disabled={!product.stock}
-                    >
-                      {product.stock ? "Add" : "Sold out"}
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
+
+                    <div className="merch-card-details">
+                      <span className="merch-card-type-label">{product.type}</span>
+                      <h3 className="merch-card-name-title">{product.name}</h3>
+                      <p className="merch-card-desc-text">{product.description}</p>
+
+                      <div className="merch-card-footer">
+                        <span className="merch-card-price-val">{formatMoney(product.price)}</span>
+                        <span className="merch-card-stock-label">
+                          {product.stock} {lang === "id" ? "stok" : "in stock"}
+                        </span>
+                      </div>
+
+                      <div className="merch-card-actions">
+                        <select
+                          className="merch-variant-select"
+                          value={selectedVariant}
+                          onChange={(e) =>
+                            setVariantSelections((current) => ({
+                              ...current,
+                              [product.id]: e.target.value,
+                            }))
+                          }
+                        >
+                          {product.variants.map((v) => (
+                            <option key={v} value={v}>
+                              {v}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          type="button"
+                          className="merch-add-btn"
+                          onClick={() => handleAdd(product)}
+                          disabled={!product.stock}
+                        >
+                          {product.stock ? (lang === "id" ? "Tambah" : "Add") : (lang === "id" ? "Habis" : "Sold Out")}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
 
-      <aside className="stack sticky">
-        <section className="cart-card">
-          <div className="cart-head">
-            <div>
-              <span className="eyebrow">Cart</span>
-              <h2 className="section-title">Ringkasan belanja</h2>
-            </div>
-            <span className="pill">{cartCount} item</span>
+      {/* ── FLOATING TOAST NOTIFICATION CONTAINER ─────────────── */}
+      <div className="merch-toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`merch-toast ${toast.type}`}>
+            <span className="merch-toast-icon">
+              {toast.type === "success" ? "🟢" : "🔴"}
+            </span>
+            <span>{toast.message}</span>
           </div>
-
-          {!cart.length ? (
-            <p className="section-copy">Tambahkan produk untuk melihat total transaksi dan melanjutkan checkout.</p>
-          ) : (
-            <div className="cart-list">
-              {cart.map((item, index) => (
-                <article className="cart-item" key={`${item.id}-${index}`}>
-                  <div className="cart-item-top">
-                    <div>
-                      <h3 className="cart-item-title">{item.name}</h3>
-                      <div className="cart-item-meta">
-                        <span className="pill">{item.variant}</span>
-                        <span className="pill">{formatMoney(item.price)}</span>
-                      </div>
-                    </div>
-                    <button type="button" className="btn btn-secondary" onClick={() => changeQty(index, -item.qty)}>
-                      Hapus
-                    </button>
-                  </div>
-                  <div className="cart-item-top">
-                    <div className="qty-controls">
-                      <button type="button" onClick={() => changeQty(index, -1)}>-</button>
-                      <strong>{item.qty}</strong>
-                      <button type="button" onClick={() => changeQty(index, 1)}>+</button>
-                    </div>
-                    <strong>{formatMoney(item.qty * item.price)}</strong>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-
-          <div className="cart-total">
-            <div className="total-row">
-              <span>Subtotal</span>
-              <strong>{formatMoney(cartTotal)}</strong>
-            </div>
-          </div>
-        </section>
-
-        <section className="section">
-          <div className="section-header">
-            <div>
-              <h2 className="section-title">Checkout</h2>
-              <p className="section-copy">Upload bukti transaksi agar order tersimpan di database.</p>
-            </div>
-          </div>
-
-          <form className="checkout-form" onSubmit={handleCheckout}>
-            <div className="field">
-              <label htmlFor="buyer-name">Nama pembeli</label>
-              <input id="buyer-name" value={buyerName} onChange={(e) => setBuyerName(e.target.value)} required />
-            </div>
-            <div className="field">
-              <label htmlFor="buyer-whatsapp">WhatsApp</label>
-              <input id="buyer-whatsapp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required />
-            </div>
-            <div className="field">
-              <label htmlFor="buyer-note">Catatan</label>
-              <textarea id="buyer-note" value={note} onChange={(e) => setNote(e.target.value)} />
-            </div>
-            <div className="field">
-              <label htmlFor="proof">Upload bukti transaksi</label>
-              <input id="proof" type="file" accept="image/*" onChange={handleProofChange} required />
-            </div>
-            {proofPreview ? (
-              <div className="proof-preview">
-                <img alt="Preview bukti transaksi" src={proofPreview} />
-              </div>
-            ) : null}
-            <button className="btn btn-primary" type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Simpan Order"}
-            </button>
-            {status ? <div className="help">{status}</div> : null}
-          </form>
-        </section>
-      </aside>
+        ))}
+      </div>
     </div>
   );
 }
