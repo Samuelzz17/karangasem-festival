@@ -7848,7 +7848,7 @@ body.sad-mode {
 }
 
 .hero-logo {
-  max-width: 650px;
+  max-width: 320px;
   width: 100%;
   height: auto;
   object-fit: contain;
@@ -7857,7 +7857,7 @@ body.sad-mode {
 
 @media (max-width: 768px) {
   .hero-logo {
-    max-width: 90%;
+    max-width: 240px;
   }
 }
 
@@ -7917,7 +7917,7 @@ body.sad-mode {
 }
 
 .footer-brand-logo {
-  max-width: 220px;
+  max-width: 120px;
   height: auto;
   object-fit: contain;
 }
