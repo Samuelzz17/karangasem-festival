@@ -3710,10 +3710,14 @@ body.sad-mode {
 }
 
 .hero-tagline {
-  font-size: 0.85rem;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  color: var(--muted);
+  font-family: "Quentin", cursive !important;
+  font-size: clamp(1.6rem, 4.5vw, 3rem) !important;
+  font-weight: 400 !important;
+  color: var(--text) !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  margin-top: 10px !important;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
 }
 
 .hero-interactive {
@@ -7827,5 +7831,197 @@ body.sad-mode {
     font-size: 0.75rem !important;
     border-radius: 8px !important;
     width: 100% !important;
+  }
+}
+
+/* ==========================================================================
+   VISUAL REVISIONS (AVA DIGITAL)
+   ========================================================================== */
+
+/* Hero Logo & Container */
+.hero-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.hero-logo {
+  max-width: 650px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.2));
+}
+
+@media (max-width: 768px) {
+  .hero-logo {
+    max-width: 90%;
+  }
+}
+
+/* Centered layout for Intro & Showcase sections */
+.centered-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 40px;
+}
+
+.centered-layout .intro-card-content {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Showcase Visual Frame */
+.showcase-visual-frame {
+  position: relative;
+  width: 100%;
+  max-width: 850px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  background: var(--surface-2);
+  aspect-ratio: 16 / 9;
+}
+
+.showcase-visual-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s ease;
+  display: block;
+}
+
+.showcase-visual-frame:hover .showcase-visual-img {
+  transform: scale(1.03);
+}
+
+.showcase-visual-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(229, 197, 162, 0.05), transparent 70%);
+}
+
+/* Footer Brand Logo */
+.footer-brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.footer-brand-logo {
+  max-width: 220px;
+  height: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .footer-brand-logo-wrap {
+    justify-content: center;
+  }
+}
+
+/* Journey Timeline Section 3 */
+.journey-timeline {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  margin: 40px 0;
+}
+
+.journey-node {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 30px 24px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  backdrop-filter: blur(10px);
+}
+
+.journey-node:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.journey-year-badge {
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  color: var(--text-light);
+  transition: all 0.3s ease;
+}
+
+.journey-year-badge.highlighted {
+  background: var(--gold-grad);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(179, 110, 35, 0.25);
+}
+
+.journey-node-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.journey-node-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.journey-connector {
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line), rgba(255, 255, 255, 0.15), var(--line));
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.journey-footer {
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .journey-timeline {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    margin: 24px 0 !important;
+  }
+  .journey-connector {
+    width: 1px !important;
+    height: 24px !important;
+    align-self: center !important;
+    margin: 0 !important;
+    background: var(--line) !important;
+  }
+  .journey-node {
+    padding: 24px 20px !important;
   }
 }

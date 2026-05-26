@@ -205,14 +205,13 @@ export default function HomePage() {
         
         <div className="screen-inner">
           <div className="hero-typography">
-            <span className="eyebrow-accent">
-              📍 {t.hero.dateTime}
-            </span>
-            <h1 className="hero-main-title select-none">
-              KARANGASEM
-              <span className="stroke-text">FESTIVAL</span>
-            </h1>
-            <h2 className="hero-main-subtitle">{t.hero.subtitle}</h2>
+            <div className="hero-logo-container">
+              <img 
+                src="/logo-karangasem-festival.png" 
+                alt="Karangasem Festival" 
+                className="hero-logo" 
+              />
+            </div>
             <p className="hero-tagline">{isSadMode ? `"${t.homepage.quoteSad.toUpperCase()}"` : `"${t.hero.tagline.toUpperCase()}"`}</p>
           </div>
 
@@ -242,7 +241,7 @@ export default function HomePage() {
       {/* SECTION 2: THEME INTRODUCTION (ARTS & CULTURE) */}
       <section className="screen screen_two">
         <div className="section-grid-lines" />
-        <div className="screen-inner split-layout">
+        <div className="screen-inner centered-layout">
           <div className="text-mask-wrapper">
             <div className="giant-mask-text">
               {isSadMode ? t.homepage.psychoTitle.toUpperCase() : t.homepage.culturalTitle.toUpperCase()}
@@ -263,96 +262,65 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SECTION 3: INTERACTIVE GEOMETRIC INITIALS GRID */}
+      {/* SECTION 3: PERJALANAN KARANGASEM FESTIVAL */}
       <section className="screen screen_three">
         <div className="section-grid-lines" />
-        <div className="screen-inner">
+        <div className="screen-inner centered-layout">
           <div className="grid-header">
             <span className="section-num">[02]</span>
-            <h2 className="grid-title">VISUAL KEY SYSTEM</h2>
-            <p className="grid-subtitle">{lang === "id" ? "Sentuh elemen untuk menggambar visual branding." : "Hover coordinates to draw visual branding."}</p>
+            <h2 className="grid-title">{lang === "id" ? "PERJALANAN KARANGASEM" : "THE JOURNEY OF KARANGASEM"}</h2>
+            <p className="grid-subtitle">
+              {lang === "id" 
+                ? "Kilas balik sejarah panjang Kota Amlapura dari masa ke masa menuju perayaan Hari Jadi ke-386." 
+                : "A brief retrospective of Amlapura's long history from past eras celebrating the 386th Anniversary."}
+            </p>
           </div>
 
-          <div className="initials-grid">
-            {/* Panel K */}
-            <div 
-              className="initials-box group"
-              onMouseMove={handleMouseMoveOffset}
-              onMouseLeave={handleMouseLeaveOffset}
-            >
-              <svg viewBox="0 0 100 100" className="box-svg">
-                <line x1="20" y1="10" x2="20" y2="90" className="svg-line main-line" />
-                <line x1="20" y1="50" x2="70" y2="10" className="svg-line branch-line" />
-                <line x1="20" y1="50" x2="70" y2="90" className="svg-line branch-line" />
-                <circle cx="20" cy="10" r="3" className="svg-dot" />
-                <circle cx="70" cy="10" r="3" className="svg-dot" />
-                <circle cx="70" cy="90" r="3" className="svg-dot" />
-              </svg>
-              <div className="box-label">
-                <span>[K]</span>
-                <strong>Karangasem</strong>
-              </div>
+          <div className="journey-timeline">
+            {/* Era 1 */}
+            <div className="journey-node">
+              <div className="journey-year-badge">1963</div>
+              <h4 className="journey-node-title">{lang === "id" ? "Kelahiran Amlapura" : "Birth of Amlapura"}</h4>
+              <p className="journey-node-desc">
+                {lang === "id" 
+                  ? "Pergantian nama dari Kuta Negara menjadi Amlapura pasca-erupsi Gunung Agung sebagai simbol kebangkitan dan harapan baru." 
+                  : "Renamed from Kuta Negara to Amlapura post-eruption of Mount Agung as a symbol of resilience and new hope."}
+              </p>
             </div>
 
-            {/* Panel F */}
-            <div 
-              className="initials-box group"
-              onMouseMove={handleMouseMoveOffset}
-              onMouseLeave={handleMouseLeaveOffset}
-            >
-              <svg viewBox="0 0 100 100" className="box-svg">
-                <line x1="25" y1="10" x2="25" y2="90" className="svg-line main-line" />
-                <line x1="25" y1="10" x2="75" y2="10" className="svg-line branch-line" />
-                <line x1="25" y1="45" x2="65" y2="45" className="svg-line branch-line" />
-                <circle cx="75" cy="10" r="3" className="svg-dot" />
-                <circle cx="65" cy="45" r="3" className="svg-dot" />
-              </svg>
-              <div className="box-label">
-                <span>[F]</span>
-                <strong>Festival</strong>
-              </div>
+            {/* Line connector */}
+            <div className="journey-connector" />
+
+            {/* Era 2 */}
+            <div className="journey-node">
+              <div className="journey-year-badge highlighted">22 JUNI</div>
+              <h4 className="journey-node-title">{lang === "id" ? "HUT Kota Amlapura" : "Amlapura City Anniversary"}</h4>
+              <p className="journey-node-desc">
+                {lang === "id" 
+                  ? "Peringatan hari jadi resmi setiap tahunnya sebagai momentum mempererat persatuan dan kebanggaan daerah." 
+                  : "Official anniversary date celebrated annually as a momentum to strengthen unity and regional pride."}
+              </p>
             </div>
 
-            {/* Panel A */}
-            <div 
-              className="initials-box group"
-              onMouseMove={handleMouseMoveOffset}
-              onMouseLeave={handleMouseLeaveOffset}
-            >
-              <svg viewBox="0 0 100 100" className="box-svg">
-                <line x1="50" y1="10" x2="20" y2="90" className="svg-line main-line" />
-                <line x1="50" y1="10" x2="80" y2="90" className="svg-line main-line" />
-                <line x1="30" y1="65" x2="70" y2="65" className="svg-line branch-line" />
-                <circle cx="50" cy="10" r="3" className="svg-dot" />
-                <circle cx="20" cy="90" r="3" className="svg-dot" />
-                <circle cx="80" cy="90" r="3" className="svg-dot" />
-              </svg>
-              <div className="box-label">
-                <span>[A]</span>
-                <strong>Amlapura</strong>
-              </div>
-            </div>
+            {/* Line connector */}
+            <div className="journey-connector" />
 
-            {/* Panel M */}
-            <div 
-              className="initials-box group"
-              onMouseMove={handleMouseMoveOffset}
-              onMouseLeave={handleMouseLeaveOffset}
-            >
-              <svg viewBox="0 0 100 100" className="box-svg">
-                <line x1="15" y1="90" x2="15" y2="10" className="svg-line main-line" />
-                <line x1="15" y1="10" x2="50" y2="55" className="svg-line branch-line" />
-                <line x1="50" y1="55" x2="85" y2="10" className="svg-line branch-line" />
-                <line x1="85" y1="10" x2="85" y2="90" className="svg-line main-line" />
-                <circle cx="15" cy="10" r="3" className="svg-dot" />
-                <circle cx="50" cy="55" r="3" className="svg-dot" />
-                <circle cx="85" cy="10" r="3" className="svg-dot" />
-              </svg>
-              <div className="box-label">
-                <span>[M]</span>
-                <strong>Music & Art</strong>
-              </div>
+            {/* Era 3 */}
+            <div className="journey-node">
+              <div className="journey-year-badge">KINI</div>
+              <h4 className="journey-node-title">{lang === "id" ? "Kota Pusaka & Budaya" : "Heritage & Culture City"}</h4>
+              <p className="journey-node-desc">
+                {lang === "id" 
+                  ? "Sinergi harmonis pelestarian pusaka sejarah arsitektur puri dengan pariwisata ekonomi kreatif modern." 
+                  : "Harmonious synergy between royal heritage preservation and modern creative economy tourism."}
+              </p>
             </div>
+          </div>
+
+          <div className="journey-footer">
+            <Link href="/history" className="hero-btn primary">
+              📖 {lang === "id" ? "Baca Sejarah Lengkap" : "Read Full History"}
+            </Link>
           </div>
         </div>
       </section>

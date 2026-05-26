@@ -33,9 +33,12 @@ export default function SiteFooter() {
       <div className="footer-grid-layout">
         {/* Column 1: Brand Info */}
         <div className="footer-brand-col">
-          <div className="footer-brand-title">
-            Karangasem
-            <span>Festival</span>
+          <div className="footer-brand-logo-wrap">
+            <img 
+              src="/logo-karangasem-festival.png" 
+              alt="Karangasem Festival Logo" 
+              className="footer-brand-logo"
+            />
           </div>
           <p className="footer-brand-tagline">
             {lang === "id" ? "tidak mudah, tapi harus bisa" : "not easy, but we can do it"}
