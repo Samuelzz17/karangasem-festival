@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { jsPDF } from "jspdf";
 import Link from "next/link";
 import { useCart } from "../../components/CartContext";
 import { useLanguage } from "../../components/LanguageContext";
@@ -25,6 +26,16 @@ function readFileAsDataURL(file) {
   });
 }
 
+const loadImage = (src) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = (e) => reject(e);
+    img.src = src;
+  });
+};
+
 export default function CartPage() {
   const { cart, changeQty, cartCount, cartTotal, clearCart } = useCart();
   const { lang, t } = useLanguage();
@@ -38,11 +49,144 @@ export default function CartPage() {
   const [proofData, setProofData] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pdfDownloading, setPdfDownloading] = useState(false);
 
   // Steps: 'cart' | 'buyer_data' | 'success'
   const [checkoutStep, setCheckoutStep] = useState("cart");
   const [showQrisModal, setShowQrisModal] = useState(false);
   const [lastOrderId, setLastOrderId] = useState("");
+  const [lastOrderDetails, setLastOrderDetails] = useState(null);
+
+  async function downloadInvoicePDF(order) {
+    if (!order) return;
+    const doc = new jsPDF();
+
+    // Set colors
+    doc.setFillColor(45, 49, 79); // Accent color #2d314f
+    doc.rect(0, 0, 210, 35, "F");
+
+    // Header Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("KARANGASEM FESTIVAL 2026", 14, 18);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("Official Merchandise Transaction Invoice", 14, 25);
+
+    // Order ID and Date
+    doc.setTextColor(45, 49, 79);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(`Invoice ID: ${order.id}`, 14, 50);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Tanggal: ${new Date(order.date).toLocaleString("id-ID")}`, 14, 56);
+    doc.text(`Status: Menunggu Verifikasi Pembayaran`, 14, 62);
+
+    // Customer Info
+    doc.setFont("helvetica", "bold");
+    doc.text("Detail Pembeli:", 14, 74);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Nama: ${order.buyerName}`, 14, 80);
+    doc.text(`WhatsApp: ${order.whatsapp}`, 14, 86);
+    if (order.note) {
+      doc.text(`Catatan: ${order.note}`, 14, 92);
+    }
+
+    // Line separator
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 98, 196, 98);
+
+    // Table Header
+    doc.setFont("helvetica", "bold");
+    doc.text("Produk", 14, 106);
+    doc.text("Ukuran", 90, 106);
+    doc.text("Harga", 120, 106);
+    doc.text("Qty", 155, 106);
+    doc.text("Subtotal", 175, 106);
+    doc.line(14, 110, 196, 110);
+
+    // Table Body
+    doc.setFont("helvetica", "normal");
+    let y = 118;
+    order.items.forEach((item) => {
+      const name = item.name.length > 30 ? item.name.substring(0, 27) + "..." : item.name;
+      doc.text(name, 14, y);
+      doc.text(item.variant || "Default", 90, y);
+      doc.text(formatMoney(item.price), 120, y);
+      doc.text(`${item.qty}`, 155, y);
+      doc.text(formatMoney(item.qty * item.price), 175, y);
+      y += 8;
+    });
+
+    doc.line(14, y - 2, 196, y - 2);
+
+    // Total Row
+    doc.setFont("helvetica", "bold");
+    doc.text("Total Pembayaran:", 120, y + 6);
+    doc.text(formatMoney(order.total), 175, y + 6);
+
+    let footerY = y + 20;
+
+    const isImage = order.proofData && (
+      order.proofData.startsWith("data:image/") ||
+      order.proofType?.startsWith("image/") ||
+      order.proofType === "image"
+    );
+
+    if (isImage) {
+      try {
+        const imgElement = await loadImage(order.proofData);
+        let imgY = y + 18;
+        let pageAdded = false;
+
+        // If it doesn't fit on page 1, add page 2
+        if (imgY + 75 > 280) {
+          doc.addPage();
+          imgY = 25;
+          pageAdded = true;
+
+          // Draw a small header on page 2
+          doc.setFillColor(45, 49, 79);
+          doc.rect(0, 0, 210, 15, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          doc.text(`Bukti Pembayaran - Invoice ID: ${order.id}`, 14, 10);
+        }
+
+        doc.setTextColor(45, 49, 79);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text("Bukti Pembayaran:", 14, imgY);
+
+        // Frame card for the receipt image
+        doc.setDrawColor(220, 220, 220);
+        doc.setFillColor(250, 250, 250);
+        doc.roundedRect(13, imgY + 4, 52, 67, 2, 2, "FD");
+
+        let format = "JPEG";
+        if (order.proofData.includes("image/png")) format = "PNG";
+        else if (order.proofData.includes("image/webp")) format = "WEBP";
+
+        doc.addImage(imgElement, format, 14, imgY + 5, 50, 65);
+        footerY = imgY + 80;
+      } catch (err) {
+        console.error("Error adding image to PDF:", err);
+      }
+    }
+
+    // Footer note
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(120, 120, 120);
+    doc.text("Terima kasih atas pemesanan Anda. Harap simpan invoice ini sebagai bukti transaksi.", 14, footerY);
+    doc.text("Panitia Karangasem Festival 2026", 14, footerY + 5);
+
+    // Save
+    doc.save(`Invoice-${order.id}.pdf`);
+  }
 
   async function handleProofChange(event) {
     const file = event.target.files?.[0];
@@ -89,6 +233,17 @@ export default function CartPage() {
       }
 
       setLastOrderId(data.order.id);
+      setLastOrderDetails({
+        id: data.order.id,
+        buyerName,
+        whatsapp,
+        note,
+        items: [...cart],
+        total: cartTotal,
+        date: new Date().toISOString(),
+        proofData,
+        proofType: proofData.startsWith("data:image/") ? "image" : "application/octet-stream",
+      });
       clearCart();
       setBuyerName("");
       setWhatsapp("");
@@ -298,10 +453,29 @@ export default function CartPage() {
                 <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginTop: "8px" }}>
                   {t.cart.successDesc}
                 </p>
+                {lastOrderDetails && (
+                  <button
+                    disabled={pdfDownloading}
+                    onClick={async () => {
+                      setPdfDownloading(true);
+                      try {
+                        await downloadInvoicePDF(lastOrderDetails);
+                      } catch (e) {
+                        alert("Gagal mengunduh PDF: " + e.message);
+                      } finally {
+                        setPdfDownloading(false);
+                      }
+                    }}
+                    className="btn btn-secondary"
+                    style={{ width: "100%", marginTop: "16px", background: "rgba(125, 211, 252, 0.15)", color: "#7dd3fc" }}
+                  >
+                    {pdfDownloading ? "⏳ Menyiapkan PDF..." : "📥 Unduh Rekap PDF"}
+                  </button>
+                )}
                 <Link
                   href="/merchandise"
                   className="btn btn-primary"
-                  style={{ width: "100%", marginTop: "16px", textAlign: "center" }}
+                  style={{ width: "100%", marginTop: "12px", textAlign: "center" }}
                 >
                   {t.cart.backStore}
                 </Link>
