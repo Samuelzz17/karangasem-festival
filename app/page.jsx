@@ -268,7 +268,7 @@ export default function HomePage() {
         <div className="screen-inner centered-layout">
           <div className="grid-header">
             <span className="section-num">[02]</span>
-            <h2 className="grid-title">{lang === "id" ? "PERJALANAN KARANGASEM" : "THE JOURNEY OF KARANGASEM"}</h2>
+            <h2 className="grid-title">{lang === "id" ? "PERJALANAN KARANGASEM FESTIVAL" : "THE JOURNEY OF KARANGASEM FESTIVAL"}</h2>
             <p className="grid-subtitle">
               {lang === "id" 
                 ? "Kilas balik sejarah panjang Kota Amlapura dari masa ke masa menuju perayaan Hari Jadi ke-386." 
