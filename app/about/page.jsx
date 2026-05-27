@@ -9,7 +9,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 export default function AboutPage() {
-  const { t, lang, isSadMode } = useLanguage();
+  const { t, lang, isFestivalMode } = useLanguage();
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -24,12 +24,11 @@ export default function AboutPage() {
           duration: 0.7,
           ease: "power3.out",
         })
-        .from(".about-hero-giant", {
-          y: 120,
+        .from(".about-hero-logo-img", {
+          y: 80,
           opacity: 0,
           duration: 1.2,
           ease: "expo.out",
-          stagger: 0.1,
         }, "-=0.4")
         .from(".about-hero-body", {
           y: 40,
@@ -171,9 +170,7 @@ export default function AboutPage() {
             </span>
 
             <div className="about-hero-giant-wrap">
-              <div className="about-hero-giant">KARANGASEM</div>
-              <div className="about-hero-giant outline">FESTIVAL</div>
-              <div className="about-hero-giant muted">2026</div>
+              <img src="/logo-karangasem-festival.png" alt="Karangasem Festival" className="about-hero-logo-img" />
             </div>
 
             <div className="about-hero-scroll-hint">

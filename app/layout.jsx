@@ -10,6 +10,9 @@ export const metadata = {
   title: "Karangasem Festival",
   description:
     "Website event Karangasem Festival dengan merchandise, admin login Firebase, CRUD produk, dan workflow order.",
+  icons: {
+    icon: "/logo-karangasem-festival.png",
+  },
 };
 
 export default function RootLayout({ children }) {

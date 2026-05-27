@@ -509,7 +509,7 @@ export const translations = {
 
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState("id");
-  const [isSadMode, setIsSadMode] = useState(false);
+  const [isFestivalMode, setIsFestivalMode] = useState(false);
 
   // Load language from localStorage if available
   useEffect(() => {
@@ -523,26 +523,26 @@ export function LanguageProvider({ children }) {
     }
   }, []);
 
-  // Load Sad Mode from localStorage if available
+  // Load Festival Mode from localStorage if available
   useEffect(() => {
     try {
-      const storedSad = localStorage.getItem("kf-sadmode");
-      if (storedSad === "true") {
-        setIsSadMode(true);
+      const storedFestival = localStorage.getItem("kf-festivalmode");
+      if (storedFestival === "true") {
+        setIsFestivalMode(true);
       }
     } catch (e) {
       console.error(e);
     }
   }, []);
 
-  // Apply .sad-mode class to body
+  // Apply .festival-mode class to body
   useEffect(() => {
-    if (isSadMode) {
-      document.body.classList.add("sad-mode");
+    if (isFestivalMode) {
+      document.body.classList.add("festival-mode");
     } else {
-      document.body.classList.remove("sad-mode");
+      document.body.classList.remove("festival-mode");
     }
-  }, [isSadMode]);
+  }, [isFestivalMode]);
 
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
@@ -557,11 +557,11 @@ export function LanguageProvider({ children }) {
     }
   };
 
-  const toggleSadMode = () => {
-    setIsSadMode((prev) => {
+  const toggleFestivalMode = () => {
+    setIsFestivalMode((prev) => {
       const next = !prev;
       try {
-        localStorage.setItem("kf-sadmode", next ? "true" : "false");
+        localStorage.setItem("kf-festivalmode", next ? "true" : "false");
       } catch (e) {
         console.error(e);
       }
@@ -572,7 +572,7 @@ export function LanguageProvider({ children }) {
   const t = translations[lang];
 
   return (
-    <LanguageContext.Provider value={{ lang, changeLang, t, isSadMode, toggleSadMode, isAudioPlaying, setIsAudioPlaying }}>
+    <LanguageContext.Provider value={{ lang, changeLang, t, isFestivalMode, toggleFestivalMode, isAudioPlaying, setIsAudioPlaying }}>
       {children}
     </LanguageContext.Provider>
   );

@@ -288,7 +288,7 @@ export default function HistoryPage() {
         <div className="hist-stat-inner">
           <div className="hist-stat-left">
             <span className="hist-section-label">[03] — {lang === "id" ? "Identitas Kota" : "City Identity"}</span>
-            <div className="hist-stat-giant">386</div>
+            <img src="/386.png" alt="386" className="hist-stat-giant-img" />
             <div className="hist-stat-sub">
               {lang === "id" ? "Tahun perjalanan panjang\nAmlapura berdiri" : "Years of Amlapura's\nlong journey"}
             </div>

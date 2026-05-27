@@ -10,7 +10,7 @@ import { useSiteHeaderGsap } from "../hooks/useGsapAnimations";
 export default function SiteHeader() {
   const pathname = usePathname();
   const { cartCount } = useCart();
-  const { lang, changeLang, t, isSadMode, toggleSadMode, isAudioPlaying } = useLanguage();
+  const { lang, changeLang, t, isFestivalMode, toggleFestivalMode, isAudioPlaying } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   useSiteHeaderGsap();
 
@@ -26,7 +26,6 @@ export default function SiteHeader() {
     { href: "/rundown", key: "rundown" },
     { href: "/merchandise", key: "merchandise" },
     { href: "/gallery", key: "gallery" },
-    { href: "/cart", key: "cart" },
   ];
 
   const formattedCartCount = String(cartCount).padStart(2, "0");
@@ -46,13 +45,13 @@ export default function SiteHeader() {
         <div className="header_quote">
           <Link href="/">
             <span>Karangasem Festival®</span>{" "}
-            {isSadMode ? t.homepage.quoteSad : t.homepage.quoteNormal}
+            {isFestivalMode ? t.homepage.quoteSad : t.homepage.quoteNormal}
           </Link>
         </div>
 
-        <div className="header_sadmode" onClick={toggleSadMode}>
-          sad mode{" "}
-          <span className={`smode-btn-toggle ${isSadMode ? "on" : "off"}`}>
+        <div className="header_festivalmode" onClick={toggleFestivalMode}>
+          festival mode{" "}
+          <span className={`smode-btn-toggle ${isFestivalMode ? "on" : "off"}`}>
             <span className="smode-dot" />
           </span>
         </div>
@@ -93,12 +92,12 @@ export default function SiteHeader() {
           <div className="header_quote">
             <Link href="/" onClick={() => setMenuOpen(false)}>
               <span>Karangasem Festival®</span>{" "}
-              {isSadMode ? t.homepage.quoteSad : t.homepage.quoteNormal}
+              {isFestivalMode ? t.homepage.quoteSad : t.homepage.quoteNormal}
             </Link>
           </div>
-          <div className="header_sadmode" onClick={toggleSadMode}>
-            sad mode{" "}
-            <span className={`smode-btn-toggle ${isSadMode ? "on" : "off"}`}>
+          <div className="header_festivalmode" onClick={toggleFestivalMode}>
+            festival mode{" "}
+            <span className={`smode-btn-toggle ${isFestivalMode ? "on" : "off"}`}>
               <span className="smode-dot" />
             </span>
           </div>

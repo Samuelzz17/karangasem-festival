@@ -8,7 +8,7 @@ import CountdownTimer from "../components/CountdownTimer";
 import { useHomeGsap } from "../hooks/useGsapAnimations";
 
 export default function HomePage() {
-  const { lang, t, isSadMode, isAudioPlaying, setIsAudioPlaying } = useLanguage();
+  const { lang, t, isFestivalMode, isAudioPlaying, setIsAudioPlaying } = useLanguage();
   useHomeGsap();
   const { addToCart } = useCart();
   
@@ -186,7 +186,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className={`home-reskin ${isSadMode ? "sad-mode-active" : ""}`}>
+    <div className={`home-reskin ${isFestivalMode ? "festival-mode-active" : ""}`}>
       {/* SECTION 1: HERO SCREEN */}
       <section className="screen screen_one">
         <video 
@@ -200,8 +200,8 @@ export default function HomePage() {
         </video>
         
         {/* Dynamic Dark Mode Gradients and Noise overlays */}
-        <div className="sadmodegrad" />
-        <div className="sadmodegraddop" />
+        <div className="festivalmodegrad" />
+        <div className="festivalmodegraddop" />
         
         <div className="screen-inner">
           <div className="hero-typography">
@@ -212,7 +212,7 @@ export default function HomePage() {
                 className="hero-logo" 
               />
             </div>
-            <p className="hero-tagline">{isSadMode ? `"${t.homepage.quoteSad.toUpperCase()}"` : `"${t.hero.tagline.toUpperCase()}"`}</p>
+            <p className="hero-tagline">{isFestivalMode ? `"${t.homepage.quoteSad}"` : `"${t.hero.tagline}"`}</p>
           </div>
 
           <div className="hero-interactive">
@@ -244,7 +244,7 @@ export default function HomePage() {
         <div className="screen-inner centered-layout">
           <div className="text-mask-wrapper">
             <div className="giant-mask-text">
-              {isSadMode ? t.homepage.psychoTitle.toUpperCase() : t.homepage.culturalTitle.toUpperCase()}
+              {isFestivalMode ? t.homepage.psychoTitle.toUpperCase() : t.homepage.culturalTitle.toUpperCase()}
             </div>
           </div>
 
@@ -252,7 +252,7 @@ export default function HomePage() {
             <span className="section-num">[01]</span>
             <h3 className="intro-header">{t.homepage.introTitle}</h3>
             <p className="intro-text">
-              {isSadMode ? t.homepage.introTextSad : t.homepage.introText}
+              {isFestivalMode ? t.homepage.introTextSad : t.homepage.introText}
             </p>
             <div className="intro-meta">
               <span>HUT AMLAPURA 386</span>
